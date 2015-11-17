@@ -9,10 +9,10 @@ namespace RDAExplorerGUI.UIConverters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            bool? nullable = (bool?)value;
+            var nullable = (bool?)value;
             if ((!nullable.GetValueOrDefault() ? 0 : (nullable.HasValue ? 1 : 0)) != 0)
-                return (object)Visibility.Visible;
-            return (object)Visibility.Collapsed;
+                return Visibility.Visible;
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

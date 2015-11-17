@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -8,7 +8,7 @@ namespace RDAExplorerGUI.Controls
 {
     public class MultiSelectTreeView : TreeView
     {
-        public static readonly DependencyProperty AutoRecursiveProperty = DependencyProperty.Register("AutoRecursive", typeof(bool), typeof(MultiSelectTreeView), (PropertyMetadata)new UIPropertyMetadata((object)false));
+        public static readonly DependencyProperty AutoRecursiveProperty = DependencyProperty.Register("AutoRecursive", typeof(bool), typeof(MultiSelectTreeView), new UIPropertyMetadata(false));
         public List<object> SelectedItems = new List<object>();
 
         public bool AutoRecursive
@@ -27,8 +27,8 @@ namespace RDAExplorerGUI.Controls
         {
             get
             {
-                List<object> list = new List<object>();
-                foreach (object obj in Items)
+                var list = new List<object>();
+                foreach (var obj in Items)
                     list.AddRange(GetRecursiveItems(obj));
                 return list;
             }
@@ -36,27 +36,24 @@ namespace RDAExplorerGUI.Controls
 
         public MultiSelectTreeView()
         {
-            SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(MultiSelectTreeView_SelectedItemChanged);
+            SelectedItemChanged += MultiSelectTreeView_SelectedItemChanged;
         }
 
-        private List<object> GetRecursiveItems(object item)
+        private static IEnumerable<object> GetRecursiveItems(object item)
         {
-            List<object> list = new List<object>();
-            list.Add(item);
-            if (item is TreeViewItem)
-            {
-                foreach (object obj in (item as TreeViewItem).Items)
-                    list.AddRange(GetRecursiveItems(obj));
-            }
+            var list = new List<object> { item };
+            var viewItem = item as TreeViewItem;
+            if (viewItem == null) return list;
+            foreach (var obj in viewItem.Items)
+                list.AddRange(GetRecursiveItems(obj));
             return list;
         }
 
         public void UpdateSelectedItems()
         {
-            foreach (object obj in AllItems)
+            foreach (TreeViewItem obj in AllItems.OfType<TreeViewItem>())
             {
-                if (obj is TreeViewItem)
-                    ((FrameworkElement)obj).Style = SelectedItems.Contains(obj) ? Application.Current.Resources["TreeViewItemStyle_Selected"] as Style : null;
+                obj.Style = SelectedItems.Contains(obj) ? Application.Current.Resources["TreeViewItemStyle_Selected"] as Style : null;
             }
         }
 
@@ -64,9 +61,9 @@ namespace RDAExplorerGUI.Controls
         {
             if (!SelectedItems.Contains(item))
                 SelectedItems.Add(item);
-            if (!(item is TreeViewItem) || !this.AutoRecursive)
+            if (!(item is TreeViewItem) || !AutoRecursive)
                 return;
-            foreach (object obj in (item as TreeViewItem).Items)
+            foreach (var obj in ((TreeViewItem) item).Items)
                 SelectItem(obj);
         }
 
