@@ -24,6 +24,7 @@ namespace RDAExplorerGUI
         public static MainWindow CurrentMainWindow;
         public FileSystemWatcher FileWatcher;
         public bool FileWatcher_Updating;
+        private readonly FolderBrowserDialog _extractDialog;
 
         public MainWindow()
         {
@@ -34,6 +35,7 @@ namespace RDAExplorerGUI
             Left = Settings.Default.Window_X;
             Top = Settings.Default.Window_Y;
             WindowState = Settings.Default.Window_IsMaximized ? WindowState.Maximized : WindowState.Normal;
+            _extractDialog = new FolderBrowserDialog();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -332,8 +334,7 @@ namespace RDAExplorerGUI
 
         private void archive_ExtractAll_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
-            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            if (_extractDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
             BackgroundWorker wrk = new BackgroundWorker();
             wrk.WorkerReportsProgress = true;
@@ -352,7 +353,7 @@ namespace RDAExplorerGUI
             {
                 try
                 {
-                    RDAExplorer.RDAFileExtension.ExtractAll(CurrentReader.rdaFolder.GetAllFiles(), dlg.SelectedPath, wrk);
+                    RDAExplorer.RDAFileExtension.ExtractAll(CurrentReader.rdaFolder.GetAllFiles(), _extractDialog.SelectedPath, wrk);
                 }
                 catch (Exception ex1)
                 {
@@ -365,8 +366,7 @@ namespace RDAExplorerGUI
 
         private void archive_ExtractSelected_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
-            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            if (_extractDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
             BackgroundWorker wrk = new BackgroundWorker();
             wrk.WorkerReportsProgress = true;
@@ -390,7 +390,7 @@ namespace RDAExplorerGUI
                         list.Add(fileTreeViewItem.File);
                     foreach (RDAFolderTreeViewItem folderTreeViewItem in Enumerable.OfType<RDAFolderTreeViewItem>(treeView.SelectedItems))
                         list.AddRange(folderTreeViewItem.Folder.GetAllFiles());
-                    RDAExplorer.RDAFileExtension.ExtractAll(Enumerable.ToList(Enumerable.Distinct(list)), dlg.SelectedPath, wrk);
+                    RDAExplorer.RDAFileExtension.ExtractAll(Enumerable.ToList(Enumerable.Distinct(list)), _extractDialog.SelectedPath, wrk);
                 }
                 catch (Exception ex1)
                 {
